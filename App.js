@@ -137,7 +137,7 @@ const App = () => {
                 units: 'metric',
               },
               headers: {
-                'X-RapidAPI-Key': '',
+                'X-RapidAPI-Key': process.env.RAPID_API_KEY,
                 'X-RapidAPI-Host': 'weatherbit-v1-mashape.p.rapidapi.com',
               },
             })
