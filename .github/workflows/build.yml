@@ -28,6 +28,8 @@ jobs:
         distribution: 'zulu' # See 'Supported distributions' for available options
         java-version: '11'
     - run: yarn install && cd android && sudo chmod a+x ./gradlew && ./gradlew assembleRelease
+    - env:
+        RAPID_API_KEY: ${{ secrets.RAPID_API_KEY }}
     - uses: actions/upload-artifact@v3.1.0
       with:
         name: weather
