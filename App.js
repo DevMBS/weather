@@ -95,7 +95,13 @@ const findIcon = (icon, daily) => {
     case 'a':
       return require('./assets/weatherIcons/700.png');
     case 'c':
-      if (icon.split('')[2] === '1' || icon.split('')[2] === '2') {
+      if (icon.split('')[2] === '1') {
+        if (day) {
+          return require('./assets/weatherIcons/800d.png');
+        } else {
+          return require('./assets/weatherIcons/800n.png');
+        }
+      } else if (icon.split('')[2] === '2') {
         if (day) {
           return require('./assets/weatherIcons/801d.png');
         } else {
@@ -130,7 +136,7 @@ const App = () => {
   const [feelsLike, setFeelsLike] = React.useState();
   const [humidity, setHumidity] = React.useState();
   const [windSpeed, setWindSpeed] = React.useState();
-  const [windDirection, setWindDirection] = React.useState();
+  const [windDirection, setWindDirection] = React.useState(0);
   const [uv, setUV] = React.useState();
   const [visibility, setVisibility] = React.useState();
   const [pressure, setPressure] = React.useState();
@@ -277,6 +283,25 @@ const App = () => {
                   </CardContainer>
                 </Flex>,
               );
+              setCity(response.data.city_name);
+              setCurrentIcon(
+                <Image
+                  mt={90}
+                  source={findIcon(response.data.data[0].weather.icon, false)}
+                  width={160}
+                  height={160}
+                  alt={'weather'}
+                />,
+              );
+              setDesc(response.data.data[0].weather.description);
+              setCurrentTemp(Math.round(response.data.data[0].temp));
+              setFeelsLike(Math.round(response.data.data[0].app_temp));
+              setHumidity(response.data.data[0].rh);
+              setWindSpeed(Math.round(response.data.data[0].wind_spd));
+              setWindDirection(response.data.data[0].wind_dir);
+              setUV(Math.round(response.data.data[0].uv));
+              setVisibility(Math.round(response.data.data[0].vis));
+              setPressure(Math.round(response.data.data[0].pres));
             })
             .catch(function (error) {
               console.error(error);
@@ -290,7 +315,7 @@ const App = () => {
     }
   }
   React.useEffect(() => {
-    if (dailyForecast) {
+    if (pressure) {
       SplashScreen.hide();
     }
   });
@@ -370,7 +395,7 @@ const App = () => {
               position: 'absolute',
               top: -5,
               right: -40,
-              transform: [{rotateZ: `${20}deg`}],
+              transform: [{rotateZ: `${windDirection}deg`}],
             }}
           />
         </Box>
@@ -433,24 +458,18 @@ const App = () => {
               style={{position: 'absolute', left: 4, top: 0}}
             />
             <Text fontSize="xl" color={'primary.50'} ml={10}>
-              City
+              {city}
             </Text>
           </Box>
-          <Image
-            mt={90}
-            source={require('./assets/weatherIcons/800d.png')}
-            width={160}
-            height={160}
-            alt={'weather'}
-          />
+          {currentIcon}
           <Box mt={50}>
             <Text color={'primary.100'} fontSize={'md'}>
-              Sunny
+              {desc}
             </Text>
           </Box>
           <Box mt={2}>
             <Heading color={'primary.100'} size="4xl">
-              20
+              {currentTemp}
             </Heading>
             <Text
               color={'primary.100'}
@@ -469,16 +488,16 @@ const App = () => {
           {dailyForecast}
           <Box mt={18} mb={20}>
             <CardContainer>
-              <Data text={'Feels Like'} data={32} />
-              <Data text={'Humidity'} data={67} />
+              <Data text={'Feels Like'} data={feelsLike} />
+              <Data text={'Humidity'} data={humidity} />
             </CardContainer>
             <CardContainer>
-              <Data text={'Wind'} data={13} />
-              <Data text={'UV Index'} data={7} />
+              <Data text={'Wind'} data={windSpeed} />
+              <Data text={'UV Index'} data={uv} />
             </CardContainer>
             <CardContainer>
-              <Data text={'Visibility'} data={14} />
-              <Data text={'Pressure'} data={1012} />
+              <Data text={'Visibility'} data={visibility} />
+              <Data text={'Pressure'} data={pressure} />
             </CardContainer>
           </Box>
         </Flex>
