@@ -109,8 +109,31 @@ const findIcon = (icon, daily) => {
   }
 };
 
+const daysOfWeek = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+let locationEnabled = false;
+
 const App = () => {
   const [hourlyData, setHourlyData] = React.useState([]);
+  const [dailyForecast, setDailyForecast] = React.useState();
+  const [city, setCity] = React.useState();
+  const [currentIcon, setCurrentIcon] = React.useState();
+  const [desc, setDesc] = React.useState();
+  const [currentTemp, setCurrentTemp] = React.useState();
+  const [feelsLike, setFeelsLike] = React.useState();
+  const [humidity, setHumidity] = React.useState();
+  const [windSpeed, setWindSpeed] = React.useState();
+  const [windDirection, setWindDirection] = React.useState();
+  const [uv, setUV] = React.useState();
+  const [visibility, setVisibility] = React.useState();
+  const [pressure, setPressure] = React.useState();
   const [enabled, requestResolution] = useLocationSettings(
     {
       alwaysShow: true,
@@ -118,7 +141,10 @@ const App = () => {
     false,
   );
   if (!enabled) {
-    requestResolution();
+    if (!locationEnabled) {
+      requestResolution();
+      locationEnabled = true;
+    }
   } else {
     if (!dataReceived) {
       GetLocation.getCurrentPosition({
@@ -126,7 +152,6 @@ const App = () => {
         timeout: 15000,
       })
         .then(location => {
-          console.log(RAPID_API_KEY);
           axios
             .request({
               method: 'GET',
@@ -168,6 +193,8 @@ const App = () => {
                 twoDaysTemps = [],
                 threeDaysIcons = [],
                 threeDaysTemps = [];
+              let twoWeekDay = false;
+              let threeWeekDay = false;
               while (checkMidnight < 4 && response.data.data[hourCounter]) {
                 let icon = response.data.data[hourCounter].weather.icon;
                 let temp = response.data.data[hourCounter].temp;
@@ -181,10 +208,30 @@ const App = () => {
                     tomorrowTemps.push(temp);
                     break;
                   case 2:
+                    if (!twoWeekDay) {
+                      twoWeekDay =
+                        daysOfWeek[
+                          new Date(
+                            response.data.data[
+                              hourCounter
+                            ].timestamp_local.split('T')[0],
+                          ).getDay()
+                        ];
+                    }
                     twoDaysIcons.push(icon);
                     twoDaysTemps.push(temp);
                     break;
                   case 3:
+                    if (!threeWeekDay) {
+                      threeWeekDay =
+                        daysOfWeek[
+                          new Date(
+                            response.data.data[
+                              hourCounter
+                            ].timestamp_local.split('T')[0],
+                          ).getDay()
+                        ];
+                    }
                     threeDaysIcons.push(icon);
                     threeDaysTemps.push(temp);
                     break;
@@ -198,29 +245,38 @@ const App = () => {
                 }
                 hourCounter++;
               }
-              let dailyForecastArr = [
-                {
-                  day: 'Today',
-                  icon: mostFrequent(todayIcons),
-                  temp: getAverage(todayTemps),
-                },
-                {
-                  day: 'Tomorrow',
-                  icon: mostFrequent(tomorrowIcons),
-                  temp: getAverage(tomorrowTemps),
-                },
-                {
-                  day: 2,
-                  icon: mostFrequent(twoDaysIcons),
-                  temp: getAverage(twoDaysTemps),
-                },
-                {
-                  day: 3,
-                  icon: mostFrequent(threeDaysIcons),
-                  temp: getAverage(threeDaysTemps),
-                },
-              ];
-              dataReceived = true;
+              setDailyForecast(
+                <Flex
+                  direction={'column'}
+                  w={'100%'}
+                  style={{alignItems: 'center'}}
+                  mt={14}>
+                  <CardContainer>
+                    <DailyWeatherCard
+                      day={'Today'}
+                      icon={mostFrequent(todayIcons)}
+                      temp={Math.round(getAverage(todayTemps))}
+                    />
+                    <DailyWeatherCard
+                      day={'Tomorrow'}
+                      icon={mostFrequent(tomorrowIcons)}
+                      temp={Math.round(getAverage(tomorrowTemps))}
+                    />
+                  </CardContainer>
+                  <CardContainer>
+                    <DailyWeatherCard
+                      day={twoWeekDay}
+                      icon={mostFrequent(twoDaysIcons)}
+                      temp={Math.round(getAverage(twoDaysTemps))}
+                    />
+                    <DailyWeatherCard
+                      day={threeWeekDay}
+                      icon={mostFrequent(threeDaysIcons)}
+                      temp={Math.round(getAverage(threeDaysTemps))}
+                    />
+                  </CardContainer>
+                </Flex>,
+              );
             })
             .catch(function (error) {
               console.error(error);
@@ -230,10 +286,13 @@ const App = () => {
           const {code, message} = error;
           console.warn(code, message);
         });
+      dataReceived = true;
     }
   }
   React.useEffect(() => {
-    SplashScreen.hide();
+    if (dailyForecast) {
+      SplashScreen.hide();
+    }
   });
   const WeatherCard = props => {
     let icon = findIcon(props.icon, false);
@@ -256,10 +315,34 @@ const App = () => {
       </Flex>
     );
   };
-  const DailyWeatherCard = () => {
+  const DailyWeatherCard = props => {
     return (
-      <Box bg={'card'} w={'48%'} height={40} rounded={'md'}>
-        {}
+      <Box
+        bg={'rgba(46,51,65,0.2)'}
+        w={'48%'}
+        height={40}
+        rounded={'md'}
+        pt={2}
+        pb={2}
+        pl={1}
+        pr={1}>
+        <Flex direction={'row'}>
+          <Image
+            source={findIcon(props.icon, true)}
+            width={20}
+            height={20}
+            alt={'weather'}
+          />
+          <Text
+            fontSize={'4xl'}
+            color={'primary.50'}
+            style={{position: 'absolute', top: 15, right: 1}}>
+            {props.temp}°
+          </Text>
+        </Flex>
+        <Text w={'100%'} fontSize={'xl'} style={{textAlign: 'center'}} mt={8}>
+          {props.day}
+        </Text>
       </Box>
     );
   };
@@ -383,20 +466,7 @@ const App = () => {
             showsHorizontalScrollIndicator={false}>
             {hourlyData}
           </ScrollView>
-          <Flex
-            direction={'column'}
-            w={'100%'}
-            style={{alignItems: 'center'}}
-            mt={14}>
-            <CardContainer>
-              <DailyWeatherCard />
-              <DailyWeatherCard />
-            </CardContainer>
-            <CardContainer>
-              <DailyWeatherCard />
-              <DailyWeatherCard />
-            </CardContainer>
-          </Flex>
+          {dailyForecast}
           <Box mt={18} mb={20}>
             <CardContainer>
               <Data text={'Feels Like'} data={32} />
