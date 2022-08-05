@@ -30,7 +30,7 @@ jobs:
     - shell: bash
       env:
         RAPID_API_KEY: ${{ secrets.RAPID_API_KEY }}
-      run: touch ./.env && echo "RAPID_API_KEY" >> ./.env
+      run: touch ./.env && echo "RAPID_API_KEY=$RAPID_API_KEY" >> ./.env
     - run: yarn install && cd android && sudo chmod a+x ./gradlew && ./gradlew assembleRelease
     - uses: actions/upload-artifact@v3.1.0
       with:
