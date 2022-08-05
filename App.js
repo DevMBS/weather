@@ -22,6 +22,7 @@ import SplashScreen from 'react-native-splash-screen';
 import GetLocation from 'react-native-get-location';
 import LocationEnabler from 'react-native-location-enabler';
 import axios from 'axios';
+import {RAPID_API_KEY} from '@env';
 
 SystemNavigationBar.setNavigationColor('hsla(0,0%,0%,0)');
 
@@ -125,6 +126,7 @@ const App = () => {
         timeout: 15000,
       })
         .then(location => {
+          console.log(RAPID_API_KEY);
           axios
             .request({
               method: 'GET',
@@ -137,7 +139,7 @@ const App = () => {
                 units: 'metric',
               },
               headers: {
-                'X-RapidAPI-Key': process.env.RAPID_API_KEY,
+                'X-RapidAPI-Key': RAPID_API_KEY,
                 'X-RapidAPI-Host': 'weatherbit-v1-mashape.p.rapidapi.com',
               },
             })

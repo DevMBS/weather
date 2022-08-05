@@ -26,6 +26,7 @@
     "native-base": "3.4.0",
     "react": "17.0.1",
     "react-native": "0.64.2",
+    "react-native-dotenv": "^3.3.1",
     "react-native-get-location": "^2.2.1",
     "react-native-location-enabler": "^4.1.1",
     "react-native-safe-area-context": "^3.2.0",
