@@ -4,6 +4,7 @@
  * @flow strict-local
  */
 
+//imports
 import React from 'react';
 import {
   Text,
@@ -22,11 +23,14 @@ import SplashScreen from 'react-native-splash-screen';
 import GetLocation from 'react-native-get-location';
 import LocationEnabler from 'react-native-location-enabler';
 import axios from 'axios';
+
+//you can set your rapid api key in .env file
 import {RAPID_API_KEY} from '@env';
 
+//set transparent navbar
 SystemNavigationBar.setNavigationColor('hsla(0,0%,0%,0)');
 
-// Define the config
+// Define the config for theme
 const config = {
   useSystemColorMode: false,
   initialColorMode: 'dark',
@@ -52,6 +56,8 @@ export const theme = extendTheme({
   },
   config,
 });
+
+//geolocation settings
 const {
   PRIORITIES: {HIGH_ACCURACY},
   useLocationSettings,
@@ -67,12 +73,14 @@ const mostFrequent = arr =>
   ).reduce((a, v) => (v[1] >= a[1] ? v : a), [null, 0])[0];
 
 const getAverage = numbers => {
+  //get average of an array of numbers
   const sum = numbers.reduce((acc, number) => acc + number, 0);
   const length = numbers.length;
   return sum / length;
 };
 
 const findIcon = (icon, daily) => {
+  //find icon name in assets
   let day;
   if (daily) {
     day = 'd';
@@ -127,8 +135,10 @@ const daysOfWeek = [
 let locationEnabled = false;
 
 const App = () => {
+  //define sections
   const [hourlyData, setHourlyData] = React.useState([]);
   const [dailyForecast, setDailyForecast] = React.useState();
+  //define data
   const [city, setCity] = React.useState();
   const [currentIcon, setCurrentIcon] = React.useState();
   const [desc, setDesc] = React.useState();
@@ -140,6 +150,8 @@ const App = () => {
   const [uv, setUV] = React.useState();
   const [visibility, setVisibility] = React.useState();
   const [pressure, setPressure] = React.useState();
+
+  //GPS enable request
   const [enabled, requestResolution] = useLocationSettings(
     {
       alwaysShow: true,
@@ -153,6 +165,7 @@ const App = () => {
     }
   } else {
     if (!dataReceived) {
+      //get current geolocation and call weatherbit api
       GetLocation.getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 15000,
@@ -175,8 +188,11 @@ const App = () => {
               },
             })
             .then(function (response) {
+              //handle response
+              //array of hourly weather cards
               let newHD = [];
               for (let i = 0; i < 24; i++) {
+                //push to this array temperature, icon and time from api
                 newHD.push({
                   temp: response.data.data[i].temp,
                   icon: response.data.data[i].weather.icon,
@@ -184,11 +200,13 @@ const App = () => {
                   key: i,
                 });
               }
+              //display it
               setHourlyData(
                 newHD.map(({temp, icon, time, key}) => (
                   <WeatherCard key={key} temp={temp} icon={icon} time={time} />
                 )),
               );
+              //vars for daily weather cards
               let checkMidnight = 0,
                 hourCounter = 0,
                 todayIcons = [],
@@ -201,6 +219,8 @@ const App = () => {
                 threeDaysTemps = [];
               let twoWeekDay = false;
               let threeWeekDay = false;
+
+              //create daily weather cards
               while (checkMidnight < 4 && response.data.data[hourCounter]) {
                 let icon = response.data.data[hourCounter].weather.icon;
                 let temp = response.data.data[hourCounter].temp;
@@ -251,6 +271,7 @@ const App = () => {
                 }
                 hourCounter++;
               }
+              //display daily weather cards
               setDailyForecast(
                 <Flex
                   direction={'column'}
@@ -283,6 +304,8 @@ const App = () => {
                   </CardContainer>
                 </Flex>,
               );
+
+              //display current weather data
               setCity(response.data.city_name);
               setCurrentIcon(
                 <Image
@@ -314,11 +337,14 @@ const App = () => {
       dataReceived = true;
     }
   }
+  //hide splash screen
   React.useEffect(() => {
     if (pressure) {
       SplashScreen.hide();
     }
   });
+
+  //hourly weather card
   const WeatherCard = props => {
     let icon = findIcon(props.icon, false);
     return (
@@ -340,6 +366,8 @@ const App = () => {
       </Flex>
     );
   };
+
+  //daily weather card
   const DailyWeatherCard = props => {
     return (
       <Box
@@ -371,6 +399,8 @@ const App = () => {
       </Box>
     );
   };
+
+  //current weather data element
   const Data = props => {
     let text = props.text;
     let data = props.data;
@@ -427,6 +457,8 @@ const App = () => {
       </Flex>
     );
   };
+
+  //daily weather card container
   const CardContainer = props => {
     return (
       <Flex
